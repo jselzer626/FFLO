@@ -1,0 +1,125 @@
+.jumbotron {
+    background: url("images/field.jpg");
+    background-size: cover;
+}
+
+body {
+    display: block;
+    position: relative;
+    margin: 0 auto;
+    z-index: 0;
+}
+
+.pageheader {
+    text-align: center;
+}
+
+#directionsimg {
+    height: 50px;
+    padding-left: 75px;
+}
+
+#landingimg {
+    width: 250px;
+    height: 100px;
+    background: url("images/headerfootball.png");
+    background-size: 50px 50px;
+    background-repeat: repeat-x;
+    background-position: center
+}
+
+#samplecolor {
+    width: 50px;
+    height: 25px;
+    padding-left: 10px;
+}
+
+h1 {
+	margin: 1em 0 0.5em 0;
+	color: #343434;
+	font-family: 'Ultra', sans-serif;
+	font-size: 36px;
+	line-height: 42px;
+	text-transform: uppercase;
+	text-shadow: 0 2px white, 0 3px #777;
+	text-align: center;
+    font-weight: bold;
+}
+
+nav {
+    background-color: #DDDDDD;
+}
+
+form {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width:300px
+}
+
+.headerimg {
+    height: 40px;
+    padding-right: 25px;
+}
+
+.heading p {
+    display: inline;
+    margin-left: 20px;
+    font-size: 20px;
+}
+
+#resetlineup {
+    font: bold 11px Arial;
+    text-decoration: none;
+    background-color: lightblue;
+    color: #333333;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+    float: right;
+}
+
+.remove {
+    margin-left: 30px;
+}
+
+table {
+    text-align: center;
+    width: 350px;
+    margin: auto;
+    color: black;
+}
+
+div {
+    margin: auto;
+}
+
+.text-danger {
+    text-align: center;
+    visibility: hidden;
+}
+
+#league_select {
+    background-color: #007bff;
+    width: 250px;
+}
+
+#league_select:hover {
+    opacity: 0.5;
+}
+
+ol {
+    text-align: left;
+    text-indent: 75px;
+    line-height: 2.5
+}
+
+#directions_list {
+    width: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+

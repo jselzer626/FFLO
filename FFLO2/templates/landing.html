@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Landing
+{% endblock %}
+
+{% block main %}
+<div class="container" style="text-align:center;">
+    <h3>Let's Find Your Best Lineup!</h3>
+    <div id="landingimg">
+    </div>
+    <h4><em>The directions are simple:</em></h4>
+    <br>
+    <div id="directions_list">
+        <ol>
+            <li id="start_item" class="lead">Set your roster parameters.<img src="static/images/clipboard.jpg" id="directionsimg" alt="clipboard"></li>
+            <li id="start_item" class="lead">Add players to your roster.<img src="static/images/footballplayer.jpg" id="directionsimg" alt="footballplayer"></li>
+            <li id="start_item" class="lead">We'll sort your roster based on this week's <a href="https://www.fantasyfootballnerd.com/">Fantasy Football Nerd</a> rankings, and show you who to start!</li>
+        </ol>
+    </div>
+    <div id="landingimg">
+    </div>
+    <h4>Ready to go? Click below:</h4>
+    <br>
+    <form method="post" action="/start"><button type="submit" class="btn btn-primary" id="start">Get Started!</button></form>
+</div>
+
+
+{% endblock %}
