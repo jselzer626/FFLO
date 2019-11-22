@@ -81,7 +81,6 @@
         <input type="hidden" id="sendlineup" name="sendlineup">
     </form>
 </div>
-
     <script>
         /*list of flex positions & roster_details for general verification*/
         let flex_positions = ["RB", "WR", "TE"];
@@ -133,7 +132,20 @@
             }
         }
 
-        /*create drop-down of all available players*/
+        let input = document.querySelector('input');
+        input.onkeyup = function() {
+            let html = '';
+            if (input.value) {
+                for (player of players) {
+                    if (player.displayName.toLowerCase().startsWith(input.value.toLowerCase())) {
+                        html += '<option>' + player.displayName + ' ' + player.team + ' ' + player.position + '</option>';
+                    }
+                }
+                document.querySelector('datalist').innerHTML = html;
+            }
+        };
+
+        /*create drop-down of all available players
         let input = document.querySelector('input');
         input.onkeyup = function() {
             $.get('/search?q=' + input.value, function(data) {
@@ -143,7 +155,7 @@
                 }
                 document.querySelector('datalist').innerHTML = html;
             });
-        };
+        };*/
 
         let addplayer = document.querySelector("#addplayer");
         addplayer.onclick = function(e) {

@@ -129,7 +129,7 @@
     let positions = ["QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
     let send_roster = document.getElementById("send_roster");
     send_roster.onclick = function(e) {
-        starter_count = 0;
+        var starter_count = 0;
         for (var i = 0; i < positions.length; i++) {
             starter_count += parseInt(document.getElementsByName(positions[i])[0].value);
         }
