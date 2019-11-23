@@ -56,6 +56,10 @@
     </div>
         <br>
         <p class="text-danger" id='invalid_input'>Duplicate or invalid selection. Please choose another player.</p>
+    <div>
+        <ul>
+        </ul>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -138,64 +142,59 @@
             if (input.value) {
                 for (player of players) {
                     if (player.displayName.toLowerCase().startsWith(input.value.toLowerCase())) {
-                        html += '<option>' + player.displayName + ' ' + player.team + ' ' + player.position + '</option>';
+                        //why can't I call join here
+                        html += '<option>' + player.displayName + ' , ' + player.position + ' , ' + player.team + ' , ' + player.playerId + '</option>';
                     }
                 }
                 document.querySelector('datalist').innerHTML = html;
             }
         };
 
-        /*create drop-down of all available players
-        let input = document.querySelector('input');
-        input.onkeyup = function() {
-            $.get('/search?q=' + input.value, function(data) {
-                let html = '';
-                for (player of data) {
-                    html += '<option>' + player + '</option>';
-                }
-                document.querySelector('datalist').innerHTML = html;
-            });
-        };*/
-
-        let addplayer = document.querySelector("#addplayer");
+        let addplayer = document.querySelector('#addplayer');
         addplayer.onclick = function(e) {
-            /*prevent too many players from being added*/
+            selectionDetails = input.value.split(' , ');
+            if (!players.some(player => player.playerId === selectionDetails[3])) {
+                e.preventDefault();
+                invalid_input_message('Duplicate or invalid selection. Please choose another player.');
+                return false;
+            } else {
+                document.querySelector('#inserthere').innerHTML += '<tr>' + '<td>' + selectionDetails[0] + '</td>' + '<td>' + selectionDetails[1] +'</td>' +'<td>' + selectionDetails[2] +
+                '</td>' + '<td>' + '<button class="remove" class="btn btn-primary">Remove</button>' + '</td>' + '</tr>';
+            }
+        };
+
+        /*let addplayer = document.querySelector("#addplayer");
+        addplayer.onclick = function(e) {
             if ($("#Rostered").html() == set_value("Rostered")) {
                 e.preventDefault();
                 invalid_input_message('Roster filled! Please remove a player before making another selection.');
                 return false;
             }
             $.get("/addplayer?q=" + input.value, function(data) {
-                /*prevent invalid entry*/
                 if (data == false) {
                     e.preventDefault();
                     invalid_input_message('Duplicate or invalid selection. Please choose another player.');
                     return false;
                 }
-                /* add player after input verified*/
                 var name = data[0][0];
                 var team = data[0][1];
                 var position = data[0][2];
                 var current_count = data[1];
                 var display_proceed_button = data[2];
 
-                /*add row for added player*/
                 document.querySelector('#inserthere').innerHTML += '<tr>' + '<td>' + name + '</td>' + '<td>' + team +'</td>' +'<td>' + position +
                 '</td>' + '<td>' + '<button class="remove" class="btn btn-primary">Remove</button>' + '</td>' + '</tr>';
 
                 for ([pos, count] of Object.entries(current_count)) {
                     document.getElementById(pos).innerHTML = count;
-                    /*if position count equals required quantity, change <td> color to green*/
                     if (current_count[pos] == set_value(pos)) {
                         final_color(pos);
                     }
                 }
-                /*check if need to add to rostered <td>*/
                 if (current_count["Rostered"] < set_value("Rostered")) {
                     flash_add_color("Rostered");
                 }
 
-                /* check if need flash add color to bench or starting & add to rostered <td> if less than required quantity */
                 if (current_count["Rostered"] > set_value("Starting") && current_count["Rostered"] < set_value("Rostered")) {
                     flash_add_color("Bench");
                 }
@@ -203,7 +202,6 @@
                     flash_add_color("Starting");
                 }
 
-                /*add to flex or normal position */
                 if (current_count["FLEX"] > 0 && current_count["FLEX"] < set_value("FLEX") && flex_positions.includes(position)) {
                     flash_add_color("FLEX");
                 }
@@ -214,7 +212,7 @@
             });
             input.value = '';
             document.getElementById("players").innerHTML = "";
-        };
+        };*/
 
         $(document).on("click", "#clear_lineup", function(data) {
             $.get('/clear_lineup', function(data) {
