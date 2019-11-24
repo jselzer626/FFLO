@@ -121,7 +121,7 @@
                     {% endif %}
                 </div>
             </div>
-            <p class="text-danger" id='invalid_input'>Invalid parameters. Please ensure that total players is greater than starters, and sum of position quantities is equal to starters.</p>
+            <p class="text-danger" id='invalid_input'>Error. Please ensure that total players is greater than starters, and sum of position quantities is equal to starters.</p>
             <button type="submit" class="btn btn-primary" id="send_roster">Proceed</button>
 
 <script>
@@ -136,9 +136,7 @@
         if (starter_count != document.getElementsByName("Starting")[0].value || parseInt(document.getElementsByName("Rostered")[0].value) < document.getElementsByName("Starting")[0].value) {
             e.preventDefault();
             document.getElementById("invalid_input").style.visibility = "visible";
-            setTimeout(function() {
-                document.getElementById("invalid_input").style.visibility = "hidden";
-            }, 5000);
+            invalid_input_message('Error. Please ensure that total players is greater than starters, and sum of position quantities is equal to starters.');
             return false;
         }
         else {

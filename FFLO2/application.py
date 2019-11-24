@@ -1,6 +1,7 @@
 import os
 import json
 
+from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -23,6 +24,15 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+# Configure session to use filesystem (instead of signed cookies)
+app.config["SESSION_FILE_DIR"] = mkdtemp()
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+
+# Configure database
+db = SQL("sqlite:///FFLO.db")
 
 # global position & detail lists
 positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
@@ -70,6 +80,53 @@ def find_starting_point():
         return redirect("/")
     else:
         return render_template("start.html")
+
+@app.route('/register', methods=["GET", "POST"])
+def create_user():
+    if request.method == "POST":
+        # input validation for username/password is going to occur entirely client side with javascript
+        username = request.form.get("username")
+        password_hash = generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8)
+
+        register_success = db.execute("INSERT INTO users (username, passwordHash) VALUES (:username, :password_hash)", username=username, password_hash=password_hash)
+
+        if register_success:
+            # query database for user that was just registered
+            rows = db.execute("SELECT * FROM users WHERE username = :username", username=username)
+
+            # login in newly registered user
+            session["user_id"] = rows[0]["userId"]
+
+            # Redirect user to home page
+            return redirect("/start")
+
+        else:
+            # check for duplicate usernames
+            return render_template("register.html", message="Username already taken")
+
+    elif request.method == "GET":
+        return render_template("register.html")
+
+@app.route('/login', methods = ["GET", "POST"])
+def login():
+    if request.method == "POST":
+
+        # logout any current user
+        session.clear()
+
+        # minimum length requirements of passwords have already been verified client side
+        rows = db.execute('SELECT * FROM users WHERE username = :username', username=request.form.get("username"))
+
+        # invalid username / password
+        if len(rows) != 1 or not check_password_hash(rows[0]['passwordHash'], request.form.get("password")):
+            return render_template('login.html', message = "Could Not Retrieve Username/Password")
+        else:
+            session["user_id"] = rows[0]["userId"]
+
+        return redirect("/start")
+
+    else:
+        return render_template("login.html")
 
 @app.route("/clear_roster_details", methods=["GET"])
 def clear_roster_details():
