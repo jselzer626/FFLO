@@ -102,29 +102,33 @@
         };
 
         let input = document.querySelector('input');
-        input.onkeyup = function() {
-            let html = '';
+        input.onkeyup = () => {
+            let matchList = [];
             if (input.value) {
                 for (player of players) {
                     if (player.displayName.toLowerCase().startsWith(input.value.toLowerCase())) {
-                        //why can't I call join here
-                        html += '<option>' + player.displayName + ' , ' + player.position + ' , ' + player.team + ' , ' + player.playerId + '</option>';
+                        matchList.push(`<option> ${player.displayName}, ${player.position}, ${player.team}, ${player.playerId} </option>`);
+                    }
+                    if (matchList.length > 5) {
+                        break;
                     }
                 }
-                document.querySelector('datalist').innerHTML = html;
+                document.querySelector('datalist').innerHTML = matchList.toString();
             }
         };
 
         let addplayer = document.querySelector('#addplayer');
         addplayer.onclick = e => {
 
-            selectionDetails = input.value.split(' , ');
+            selectionDetails = input.value.split(', ');
 
             if (!players.some(player => player.playerId === selectionDetails[3]) || playerList.includes(selectionDetails[3])
             || playerList.length >= numberConv(getId('setRostered'))) {
+
                 e.preventDefault();
                 invalid_input_message('Duplicate/invalid selection or maximum number of players added');
                 return false;
+
             } else {
 
                 //add ID to selected players list
@@ -138,7 +142,7 @@
                 counterChange(selectionDetails[1], 'add');
 
                 //clear player searchbar
-                //TODO
+                input.innerHTML = '';
             }
         };
 

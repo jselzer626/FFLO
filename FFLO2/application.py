@@ -106,3 +106,10 @@ def createRoster():
         roster_name = request.form.get('Name')
         roster_details = {parameter: request.form.get(parameter) for parameter in roster_parameters}
         return render_template("createLineup.html", roster_details = roster_details, roster_name = roster_name)
+
+@app.route('/logout', methods=["GET"])
+def logout():
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")

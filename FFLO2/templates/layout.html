@@ -22,13 +22,10 @@
     <nav class="navbar navbar-expand-md navbar-light">
         <img class="headerimg" src="static/images/helmet.png" alt="helmet"><a class="navbar-brand text-dark" href="#">FFLO</a>
         <ul class="navbar-nav ml-auto">
-            {% if Final_Roster %}
-            <li class="nav-item"><a class="nav-link text-dark" href="/"><u><b>Edit Lineup</b></u></a></li>
+            {% if session.user_id %}
+            <li class="nav-item"><a class="nav-link text-dark" href="/"><u><b>Home</b></u></a></li>
+            <li class="nav-item"><a class="nav-link text-dark" href="/logout"><u><b>Logout</b></u></a></li>
             {% endif %}
-            {% if roster_details %}
-            <li class="nav-item"><a class="nav-link text-dark" href="/clear_roster_details"><u><b>Change Roster Details</b></u></a></li>
-            {% endif %}
-            <li class="nav-item"><a class="nav-link text-dark" href="/start"><u><b>Start Over</b></u></a></li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other Resources</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
