@@ -92,6 +92,7 @@ def login():
 def index():
     if request.method == 'GET':
         return render_template("index.html")
+    #else TODO
 
 @app.route('/createRoster', methods = ['GET', 'POST'])
 @login_required

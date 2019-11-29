@@ -83,57 +83,23 @@
     </form>
 </div>
     <script>
-        /*list of flex positions & roster_details for general verification*/
-        let flex_positions = ["RB", "WR", "TE"];
-        let roster_details = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
+
+        //list for storing selected players
         let playerList = [];
 
-        //factor out so many document.getElementById calls
-        getId = Id => {
-            return document.getElementById(Id);
-        }
-
-        numberConv = elem => {
-            return parseInt(elem.innerHTML);
-        }
-
-        /*flash different color for <td> whose values are being changed*/
-        function flash_add_color(detail) {
-            document.getElementById(detail).style.backgroundColor = "#d3d3d3";
-            setTimeout( function() {
-                document.getElementById(detail).style.backgroundColor = "";
+        //change <td> color to green if <td> value equals required roster quantity
+        addColor = detail => {
+            //check if final color needed
+            if (numberConv(getId(detail)) === numberConv(getId('set' + detail))) {
+                getId(detail).style.backgroundColor = "#d4edda";
+            } else {
+                //flash gray if else
+                getId(detail).style.backgroundColor = "#d3d3d3";
+                setTimeout( function() {
+                    getId(detail).style.backgroundColor = "";
                 }, 500);
-        }
-
-        /*change <td> color to green if <td> value equals required roster quantity*/
-        function final_color(detail) {
-            document.getElementById(detail).style.backgroundColor = "#d4edda";
-        }
-
-        /*retrieve set roster parameter from <td>'s with user inputted levels from step 1*/
-        function set_value(detail) {
-            return $("#set"+detail).html();
-        }
-
-        function display_banner(display_proceed_button) {
-            if  (display_proceed_button) {
-                document.getElementById("success").style.display = "block";
             }
-            else if (document.getElementById("nav_bar_success") && document.getElementById("nav_bar_success").style.display == "block") {
-                document.getElementById("nav_bar_success").style.display = "none";
-            }
-            else {
-                document.getElementById("success").style.display = "none";
-            }
-        }
-
-        function invalid_input_message(display_message) {
-            document.getElementById("invalid_input").innerHTML = display_message;
-            document.getElementById("invalid_input").style.visibility = "visible";
-            setTimeout(function() {
-                document.getElementById("invalid_input").style.visibility = "hidden";
-            }, 3000);
-        }
+        };
 
         let input = document.querySelector('input');
         input.onkeyup = function() {
@@ -150,43 +116,47 @@
         };
 
         let addplayer = document.querySelector('#addplayer');
-        addplayer.onclick = function(e) {
+        addplayer.onclick = e => {
 
             selectionDetails = input.value.split(' , ');
 
-            if (!players.some(player => player.playerId === selectionDetails[3]) || playerList.includes(selectionDetails[3]) || playerList.length >= document.getElementById("setRostered").value) {
+            if (!players.some(player => player.playerId === selectionDetails[3]) || playerList.includes(selectionDetails[3])
+            || playerList.length >= numberConv(getId('setRostered'))) {
                 e.preventDefault();
                 invalid_input_message('Duplicate/invalid selection or maximum number of players added');
                 return false;
             } else {
 
-                playerList.push(selectionDetails[3]);
+                //add ID to selected players list
+                playerList.push(selectionDetails[3])
 
-                document.querySelector('#inserthere').innerHTML += '<tr>' + '<td>' + selectionDetails[0] + '</td>' + '<td>' + selectionDetails[1] +'</td>' +'<td>' + selectionDetails[2] +
-                '</td>' + '<td>' + selectionDetails[3] + '</td>' + '<td>' + '<button class="remove" class="btn btn-primary">Remove</button>' + '</td>' + '</tr>';
+                //add to selected players table
+                getId('inserthere').innerHTML += `<tr><td>${selectionDetails[0]}</td><td class="playerPosition">${selectionDetails[1]}</td><td>${selectionDetails[2]}</td>
+                <td class="playerId">${selectionDetails[3]}</td></tr>`;
 
-                getId('Rostered').innerHTML = numberConv(getId('Rostered')) + 1;
-
-                numberConv(getId('Starting')) >= numberConv(getId('setStarting')) ? getId("Bench").innerHTML = numberConv(getId('Bench')) + 1 :
-                getId("Starting").innerHTML = numberConv(getId('Starting')) + 1;
-
-                numberConv(getId(selectionDetails[1])) >= numberConv(getId("set" + selectionDetails[1])) && numberConv(getId('FLEX')) < numberConv(getId('setFLEX')) &&
-                flex_positions.includes(selectionDetails[1]) ? getId("FLEX").innerHTML = numberConv(getId('FLEX')) + 1 : '' ;
-
-                numberConv(getId(selectionDetails[1])) < numberConv(getId("set" + selectionDetails[1])) ?
-                getId(selectionDetails[1]).innerHTML = numberConv(getId(selectionDetails[1])) + 1 : '' ;
-
+                //flash add colors in position quantities table
+                counterChange(selectionDetails[1], 'add');
             }
         };
 
-        let clearLineup = document.getElementById('clear_lineup');
+        let clearLineup = getId('clear_lineup');
         clearLineup.onclick = () => {
-            document.getElementById("inserthere").innerHTML = '';
+            getId("inserthere").innerHTML = '';
+            roster_details.forEach(detail => {
+                getId(detail).innerHTML = 0;
+                addColor(detail);
+            });
         };
 
 
         $(document).on("click", "button.remove", function() {
+            console.log($(this).closest("tr").find("playerPosition"));
+            console.log($(this).closest("tr").find("playerId"));
             $(this).closest("tr").remove();
+
+
+
+
         });
 
         $(document).on("click", "#submitlineup", function() {
