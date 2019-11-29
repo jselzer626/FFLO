@@ -39,6 +39,9 @@ roster_parameters = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", 
 positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
 flex_positions = ["RB", "WR", "TE"]
 
+@app.route('/start', methods=["GET"])
+def start():
+    return render_template("landing.html")
 
 @app.route('/register', methods=["GET", "POST"])
 def create_user():
@@ -100,5 +103,6 @@ def createRoster():
     if request.method == "GET":
         return render_template("createRoster.html")
     else:
+        roster_name = request.form.get('Name')
         roster_details = {parameter: request.form.get(parameter) for parameter in roster_parameters}
-        return render_template("createLineup.html", roster_details = roster_details)
+        return render_template("createLineup.html", roster_details = roster_details, roster_name = roster_name)

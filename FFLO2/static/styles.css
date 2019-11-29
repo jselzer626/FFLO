@@ -146,3 +146,8 @@ ol {
 ul {
     text-align: center;
 }
+
+#addroster {
+    float: right;
+    margin-top: 15px;
+}

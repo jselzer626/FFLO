@@ -66,7 +66,7 @@
     <table class="table">
         <thead>
             <tr>
-                <th colspan="3" class="display-4">Your Team</th><th><button style="align:right" class="btn btn-primary" id="clear_lineup">Clear Lineup</button></th>
+                <th colspan="3" class="display-4">{{roster_name}}</th><th><button style="align:right" class="btn btn-primary" id="clear_lineup">Clear Lineup</button></th>
             </tr>
             <tr>
                 <th>Name</th>
@@ -128,19 +128,23 @@
             } else {
 
                 //add ID to selected players list
-                playerList.push(selectionDetails[3])
+                playerList.push(selectionDetails[3]);
 
                 //add to selected players table
                 getId('inserthere').innerHTML += `<tr><td>${selectionDetails[0]}</td><td class="playerPosition">${selectionDetails[1]}</td><td>${selectionDetails[2]}</td>
-                <td class="playerId">${selectionDetails[3]}</td></tr>`;
+                <td class="playerId">${selectionDetails[3]}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
 
                 //flash add colors in position quantities table
                 counterChange(selectionDetails[1], 'add');
+
+                //clear player searchbar
+                //TODO
             }
         };
 
         let clearLineup = getId('clear_lineup');
         clearLineup.onclick = () => {
+            playerList = [];
             getId("inserthere").innerHTML = '';
             roster_details.forEach(detail => {
                 getId(detail).innerHTML = 0;
@@ -150,11 +154,17 @@
 
 
         $(document).on("click", "button.remove", function() {
-            console.log($(this).closest("tr").find("playerPosition"));
-            console.log($(this).closest("tr").find("playerId"));
+            var position = $(this).closest("tr").find(".playerPosition").text();
+            var playerIdRemove = $(this).closest("tr").find(".playerId").text();
+
+            //remove from player array
+            playerList.splice(playerList.indexOf(playerIdRemove), 1);
+
+            //update counter
+            counterChange(position, 'remove');
+
+            // remove row from player table
             $(this).closest("tr").remove();
-
-
 
 
         });

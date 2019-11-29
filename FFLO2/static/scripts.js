@@ -6,15 +6,16 @@ getId = Id => {
     return document.getElementById(Id);
 }
 
+//quickly retrieve numeric value of html in <td>'s for counter
 numberConv = elem => {
     return parseInt(elem.innerHTML);
 }
 
 let invalid_input_message = display_message => {
-    document.getElementById("invalid_input").innerHTML = display_message;
-    document.getElementById("invalid_input").style.visibility = "visible";
+    getId("invalid_input").innerHTML = display_message;
+    getId("invalid_input").style.visibility = "visible";
     setTimeout(function() {
-        document.getElementById("invalid_input").style.visibility = "hidden";
+        getId("invalid_input").style.visibility = "hidden";
     }, 5000);
 };
 
@@ -35,7 +36,7 @@ let counterChange = (position, action) => {
              addColor("Starting");
          }
          // flex or normal
-         if (numberConv(getId('Flex')) > 0 && flex_positions.includes(position)) {
+         if (numberConv(getId('FLEX')) > 0 && flex_positions.includes(position)) {
              getId('FLEX').innerHTML = numberConv(getId("FLEX")) - 1;
              addColor("FLEX");
          } else {
@@ -51,9 +52,6 @@ let counterChange = (position, action) => {
             getId("Starting").innerHTML = numberConv(getId('Starting')) + 1;
             addColor('Starting');
         }
-
-        console.log(numberConv(getId('FLEX')))
-        console.log(numberConv(getId(position)))
 
         if (numberConv(getId(position)) >= numberConv(getId("set" + position)) &&
         numberConv(getId('FLEX')) < numberConv(getId('setFLEX')) &&
