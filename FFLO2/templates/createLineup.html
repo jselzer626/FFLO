@@ -66,7 +66,8 @@
     <table class="table">
         <thead>
             <tr>
-                <th colspan="3" class="display-4">{{roster_name}}</th><th><button style="align:right" class="btn btn-primary" id="clear_lineup">Clear Lineup</button></th>
+                <th colspan="3" class="display-4"><button style="float:left; margin-top: 15px" class="btn btn-primary" id="save">Save Lineup</button>{{roster_name}}
+                <button style="float:right; margin-top: 15px" class="btn btn-primary" id="clear_lineup">Clear Lineup</button></th>
             </tr>
             <tr>
                 <th>Name</th>
@@ -78,11 +79,18 @@
         <tbody id="inserthere">
         </tbody>
     </table>
-    <form hidden class="form-group" type="submit" method="post" action="/createlineup" id="submitroster">
-        <input type="hidden" id="sendlineup" name="sendlineup">
+    <p hidden id="rosterName">{{roster_name}}</p>
+    <form hidden class="form-group" type="submit" method="post" action="/save" id="saveLineup">
+        <input type="hidden" id="saveLineupList" name="savedLineup">
     </form>
 </div>
     <script>
+        //roster Name
+        let rosterName = getId("rosterName").innerHTML;
+
+        //roster details
+        let currentRosterDetails = {};
+        roster_details.forEach(detail => currentRosterDetails[detail] = getId(`set${detail}`).innerHTML);
 
         //list for storing selected players
         let playerList = [];
@@ -100,6 +108,18 @@
                 }, 500);
             }
         };
+
+        //think about using onload or some sort of handler
+        $.get('/loadPlayers?rosterName=' + rosterName, function(data) {
+            data.forEach(player => {
+                playerList.push(player);
+                counterChange(player.playerPosition, 'add');
+                getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
+            <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
+            });
+        });
+
+
 
         let input = document.querySelector('input');
         input.onkeyup = () => {
@@ -121,28 +141,29 @@
         addplayer.onclick = e => {
 
             selectionDetails = input.value.split(', ');
+            selectedPlayer = {};
 
-            if (!players.some(player => player.playerId === selectionDetails[3]) || playerList.includes(selectionDetails[3])
+            player_details.forEach((detail, index) => selectedPlayer[detail] = selectionDetails[index]);
+
+            if (!players.some(player => player.playerId === selectedPlayer.playerId) || playerList.some(player => player.playerId === selectedPlayer.playerId)
             || playerList.length >= numberConv(getId('setRostered'))) {
-
                 e.preventDefault();
                 invalid_input_message('Duplicate/invalid selection or maximum number of players added');
                 return false;
-
             } else {
 
                 //add ID to selected players list
-                playerList.push(selectionDetails[3]);
+                playerList.push(selectedPlayer);
 
                 //add to selected players table
-                getId('inserthere').innerHTML += `<tr><td>${selectionDetails[0]}</td><td class="playerPosition">${selectionDetails[1]}</td><td>${selectionDetails[2]}</td>
-                <td class="playerId">${selectionDetails[3]}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
+                getId('inserthere').innerHTML += `<tr><td>${selectedPlayer.Name}</td><td class="playerPosition">${selectedPlayer.Position}</td><td>${selectedPlayer.Team}</td>
+                <td class="playerId">${selectedPlayer.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
 
                 //flash add colors in position quantities table
-                counterChange(selectionDetails[1], 'add');
+                counterChange(selectedPlayer.Position, 'add');
 
                 //clear player searchbar
-                input.innerHTML = '';
+                //TODO
             }
         };
 
@@ -151,31 +172,43 @@
             playerList = [];
             getId("inserthere").innerHTML = '';
             roster_details.forEach(detail => {
-                getId(detail).innerHTML = 0;
-                addColor(detail);
+                //only need to reset inputted roster position quantities, not type of roster(ppr or standard)
+                if (detail !== 'Type') {
+                    getId(detail).innerHTML = 0;
+                    addColor(detail);
+                }
             });
         };
 
 
         $(document).on("click", "button.remove", function() {
-            var position = $(this).closest("tr").find(".playerPosition").text();
-            var playerIdRemove = $(this).closest("tr").find(".playerId").text();
+            let positionRemove = $(this).closest("tr").find(".playerPosition").text();
+            let playerIdRemove = $(this).closest("tr").find(".playerId").text();
 
-            //remove from player array
-            playerList.splice(playerList.indexOf(playerIdRemove), 1);
+            let removeIndex = playerList.map(player => player.playerId).indexOf(playerIdRemove);
+            playerList.splice(removeIndex, 1);
 
             //update counter
-            counterChange(position, 'remove');
+            counterChange(positionRemove, 'remove');
 
             // remove row from player table
             $(this).closest("tr").remove();
-
-
         });
 
-        $(document).on("click", "#submitlineup", function() {
-            document.getElementById("submitroster").submit();
-        });
+        getId('save').onclick = e => {
+            if (!playerList.length > 0) {
+                e.preventDefault();
+                invalid_input_message("Please add at least 1 player before saving");
+                return false;
+            } else {
+                $.post('/save', {
+                    playersToSave: JSON.stringify(playerList),
+                    rosterName: JSON.stringify(rosterName),
+                    currentRosterDetails: JSON.stringify(currentRosterDetails)
+                });
+
+            }
+        };
 
     </script>
 

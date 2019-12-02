@@ -8,8 +8,9 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 from collections import Counter
+from datetime import date
 
-from helpers import create_clean_list, pos_rank, playercounter, check_player_quantities, search_list, calculate_inactives, login_required
+from helpers import login_required
 
 # Configure application
 app = Flask(__name__)
@@ -38,6 +39,7 @@ db = SQL("sqlite:///FFLO.db")
 roster_parameters = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
 flex_positions = ["RB", "WR", "TE"]
+player_save_details = ['playersToSave', 'rosterName']
 
 @app.route('/start', methods=["GET"])
 def start():
@@ -94,18 +96,29 @@ def login():
 @login_required
 def index():
     if request.method == 'GET':
-        return render_template("index.html")
+
+        currentRosters = db.execute("SELECT * FROM rosters WHERE userId = :userId", userId = session["user_id"])
+
+        return render_template("index.html", currentRosters = currentRosters)
     #else TODO
 
 @app.route('/createRoster', methods = ['GET', 'POST'])
 @login_required
 def createRoster():
     if request.method == "GET":
+
         return render_template("createRoster.html")
+
     else:
-        roster_name = request.form.get('Name')
+        new_roster_name = request.form.get('Name')
+
         roster_details = {parameter: request.form.get(parameter) for parameter in roster_parameters}
-        return render_template("createLineup.html", roster_details = roster_details, roster_name = roster_name)
+
+        rosterDetailsAdded = db.execute('INSERT INTO rosters (rosterName, userId, Type, Rostered, Starting, Bench, QB, RB, WR, TE, FLEX, DEF, K) VALUES (:rosterName, :userId, :Type, :Rostered, :Starting, :Bench, :QB, :RB, :WR, :TE, :FLEX, :DEF, :K)',
+        rosterName = new_roster_name, userId = session["user_id"], Type=roster_details['Type'], Rostered=roster_details['Rostered'], Starting=roster_details['Starting'], Bench=roster_details['Bench'], QB=roster_details['QB'], RB=roster_details['RB'], WR=roster_details['WR'],
+        TE=roster_details['TE'], FLEX=roster_details['FLEX'], DEF=roster_details['DEF'], K=roster_details['K'])
+
+        return render_template("createLineup.html", roster_details = roster_details, roster_name = new_roster_name)
 
 @app.route('/logout', methods=["GET"])
 def logout():
@@ -113,3 +126,32 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route('/save', methods=["POST"])
+def save():
+    if request.method == "POST":
+        saveDetails = {detail: json.loads(request.form[detail]) for detail in player_save_details}
+
+        existingPlayers = [player['playerId'] for player in db.execute("SELECT playerID FROM players WHERE rosterName = :rosterName", rosterName = saveDetails['rosterName'])]
+
+        playersToAdd = [player for player in saveDetails['playersToSave'] if player['playerId'] not in existingPlayers]
+
+        # add players
+
+        playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
+        rosterName = saveDetails['rosterName'], userId = session["user_id"], playerName = player["Name"], playerPosition = player["Position"], playerTeam = player["Team"], playerId = player["playerId"])
+        for player in playersToAdd]
+
+@app.route('/loadPlayers', methods=["GET"])
+def loadPlayers():
+    if request.method == "GET":
+
+        return jsonify(db.execute('SELECT playerName, playerPosition, playerTeam, playerId FROM players WHERE rosterName = :rosterName', rosterName = request.args.get('rosterName')))
+
+@app.route('/editLineup', methods=["POST"])
+def editLineup():
+    if request.method == "POST":
+
+        rosterName = request.form['rosterName']
+
+        return render_template("createLineup.html", roster_name = rosterName)

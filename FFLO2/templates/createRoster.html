@@ -91,7 +91,7 @@
                     <input class="form-control" type="number" name="K" value="1" min="0">
                 </div>
             </div>
-            <p class="text-danger" id='invalid_input'>Error. Please ensure that total players is greater than starters, and sum of position quantities is equal to starters.</p>
+            <p class="text-danger" id='invalid_input'></p>
             <button type="submit" class="btn btn-primary" id="send_roster">Proceed</button>
 
 <script>
@@ -100,7 +100,10 @@
     let send_roster = document.getElementById("send_roster");
 
     send_roster.onclick = e => {
-        var starter_count = 0;
+
+        // TODO: GET request to check rosterName
+
+        let starter_count = 0;
         positions.forEach(position => {
             starter_count += parseInt(document.getElementsByName(position)[0].value);
         });
@@ -112,8 +115,7 @@
             e.preventDefault();
             invalid_input_message("Roster Name must be greater than 5 characters");
             return false;
-        }
-        else {
+        } else {
             document.getElementsByName("Bench")[0].setAttribute("value", document.getElementsByName("Rostered")[0].value -  document.getElementsByName("Starting")[0].value);
         }
     };

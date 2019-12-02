@@ -1,5 +1,6 @@
 let flex_positions = ["RB", "WR", "TE"];
-let roster_details = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
+let roster_details = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
+let player_details = ['Name', 'Position', 'Team', 'playerId'];
 
 //factor out so many document.getElementById calls
 getId = Id => {
