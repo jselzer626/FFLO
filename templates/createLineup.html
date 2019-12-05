@@ -15,6 +15,7 @@
     </div>
     <br>
     <table class="table">
+        <div class="alert alert-secondary" role="alert" id="alertMessage">{{message}}</div>
         <tr>
         {% for item in roster_details %}
             <th>{{item}}</th>
@@ -81,33 +82,16 @@
     </table>
     <p hidden id="rosterName">{{roster_name}}</p>
     <form hidden class="form-group" type="submit" method="post" action="/save" id="saveLineup">
-        <input type="hidden" id="saveLineupList" name="savedLineup">
+        <input type="hidden" id="savedLineup" name="savedLineup">
     </form>
 </div>
     <script>
-        //roster Name
-        let rosterName = getId("rosterName").innerHTML;
-
-        //roster details
-        let currentRosterDetails = {};
-        roster_details.forEach(detail => currentRosterDetails[detail] = getId(`set${detail}`).innerHTML);
-
         //list for storing selected players
         let playerList = [];
 
-        //change <td> color to green if <td> value equals required roster quantity
-        addColor = detail => {
-            //check if final color needed
-            if (numberConv(getId(detail)) === numberConv(getId('set' + detail))) {
-                getId(detail).style.backgroundColor = "#d4edda";
-            } else {
-                //flash gray if else
-                getId(detail).style.backgroundColor = "#d3d3d3";
-                setTimeout( function() {
-                    getId(detail).style.backgroundColor = "";
-                }, 500);
-            }
-        };
+        //roster Name
+        let rosterName = getId("rosterName").innerHTML;
+        console.log(rosterName);
 
         //think about using onload or some sort of handler
         $.get('/loadPlayers?rosterName=' + rosterName, function(data) {
@@ -115,11 +99,13 @@
                 playerList.push(player);
                 counterChange(player.playerPosition, 'add');
                 getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
-            <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
+                <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
             });
         });
 
-
+        window.onload = () => {
+            getId('alertMessage').innerHTML !== '' ? getId('alertMessage').style.visibility = 'visible' : '' ;
+        }
 
         let input = document.querySelector('input');
         input.onkeyup = () => {
@@ -156,7 +142,7 @@
                 playerList.push(selectedPlayer);
 
                 //add to selected players table
-                getId('inserthere').innerHTML += `<tr><td>${selectedPlayer.Name}</td><td class="playerPosition">${selectedPlayer.Position}</td><td>${selectedPlayer.Team}</td>
+                getId('inserthere').innerHTML += `<tr><td>${selectedPlayer.playerName}</td><td class="playerPosition">${selectedPlayer.playerPosition}</td><td>${selectedPlayer.playerTeam}</td>
                 <td class="playerId">${selectedPlayer.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
 
                 //flash add colors in position quantities table
@@ -201,12 +187,10 @@
                 invalid_input_message("Please add at least 1 player before saving");
                 return false;
             } else {
-                $.post('/save', {
-                    playersToSave: JSON.stringify(playerList),
-                    rosterName: JSON.stringify(rosterName),
-                    currentRosterDetails: JSON.stringify(currentRosterDetails)
-                });
-
+                dataToSend = {};
+                dataToSend[rosterName] = playerList;
+                getId("savedLineup").setAttribute('value', JSON.stringify(dataToSend));
+                document.getElementsByTagName('form')[1].submit();
             }
         };
 

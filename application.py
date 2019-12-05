@@ -17,6 +17,7 @@ app = Flask(__name__)
 
 # Reload templates when they are changed
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config['DEBUG'] = True
 
 @app.after_request
 def after_request(response):
@@ -130,17 +131,19 @@ def logout():
 @app.route('/save', methods=["POST"])
 def save():
     if request.method == "POST":
-        saveDetails = {detail: json.loads(request.form[detail]) for detail in player_save_details}
 
-        existingPlayers = [player['playerId'] for player in db.execute("SELECT playerID FROM players WHERE rosterName = :rosterName", rosterName = saveDetails['rosterName'])]
+        saveDetails = json.loads(request.form.get('savedLineup'))
 
-        playersToAdd = [player for player in saveDetails['playersToSave'] if player['playerId'] not in existingPlayers]
+        rosterName = list(saveDetails.keys())[0]
+        playersToSave = saveDetails[rosterName]
 
-        # add players
+        db.execute('DELETE FROM players WHERE rosterName = :rosterName AND userId = :userId', rosterName = rosterName, userId = session["user_id"])
 
         playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
-        rosterName = saveDetails['rosterName'], userId = session["user_id"], playerName = player["Name"], playerPosition = player["Position"], playerTeam = player["Team"], playerId = player["playerId"])
-        for player in playersToAdd]
+        rosterName = rosterName, userId = session["user_id"], playerName = player["playerName"], playerPosition = player["playerPosition"], playerTeam = player["playerTeam"], playerId = player["playerId"])
+        for player in playersToSave]
+
+        return redirect('/editLineup?rosterName=' + rosterName)
 
 @app.route('/loadPlayers', methods=["GET"])
 def loadPlayers():
@@ -148,10 +151,34 @@ def loadPlayers():
 
         return jsonify(db.execute('SELECT playerName, playerPosition, playerTeam, playerId FROM players WHERE rosterName = :rosterName', rosterName = request.args.get('rosterName')))
 
-@app.route('/editLineup', methods=["POST"])
+@app.route('/editLineup', methods=["GET", "POST"])
 def editLineup():
+
+    rosterName = ''
+    message = ''
+
     if request.method == "POST":
+        rosterName = request.form.get('lineupToEdit')
 
-        rosterName = request.form['rosterName']
+    else:
+        rosterName = request.args.get('rosterName')
+        message = f'{rosterName} saved!'
 
-        return render_template("createLineup.html", roster_name = rosterName)
+    roster_details = db.execute("SELECT * FROM rosters WHERE userId = :userId AND rosterName = :rosterName", userId = session["user_id"], rosterName = rosterName)
+
+    return render_template("createLineup.html", roster_name = rosterName, roster_details = {detail: roster_details[0][detail] for detail in roster_details[0] if detail in roster_parameters}, message=message)
+
+@app.route('/deleteLineup', methods=["GET"])
+def delete():
+    if request.method == "GET":
+        rosterName = request.args.get("rosterName")
+
+        db.execute('DELETE FROM rosters WHERE rosterName = :rosterName', rosterName = rosterName)
+        db.execute('DELETE FROM players WHERE rosterName = :rosterName', rosterName = rosterName)
+
+        return jsonify(rosterName)
+
+if __name__ == '__main__':
+ app.debug = True
+ port = int(os.environ.get('PORT', 5000))
+ app.run(host='0.0.0.0', port=port)

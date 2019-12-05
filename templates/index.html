@@ -10,6 +10,7 @@
     <table class="table">
         <thead>
             <h3 style='text-align:center' class="display-4">Current Rosters<button class="btn btn-primary" id="addroster">Create New Roster</button></h3>
+            <div class="alert alert-secondary" role="alert" id="alertMessage"></div>
         </thead>
         <tbody>
             <tr>
@@ -25,7 +26,8 @@
                 <td>{{ roster['Type'] }}</td>
                 <td>{{ roster['Rostered'] }}</td>
                 <td>{{ roster['lastModified'] }}</td>
-                <td><button class="btn btn-primary" id="editRoster">Edit</button></td>
+                <!-- can I get these two buttons to float right in the <td>-->
+                <td><button class="editLineup" class="btn btn-primary">Edit</button><span style='margin-left:20px'></span><button class="deleteLineup" class="btn btn-primary">Delete</button></td>
             </tr>
             {% endfor %}
             {% else %}
@@ -35,20 +37,33 @@
             {% endif %}
         </tbody>
     </table>
+    <form hidden class="form-group" type="submit" method="post" action="/editLineup">
+        <input type="hidden" name="lineupToEdit" id="lineupToEdit">
+    </form>
 </div>
 
 <script>
+
     getId("addroster").onclick = () => {
         window.location.href = '/createRoster';
     };
 
-    getId('editRoster').onclick = function() {
+    $(document).on("click", "button.editLineup", function() {
         let rosterName = $(this).closest("tr").find(".rosterName").text();
-        console.log(rosterName);
-        $.post('/editLineup', {
-            rosterName: JSON.stringify(rosterName)
+        getId("lineupToEdit").setAttribute('value', rosterName);
+        document.getElementsByTagName('form')[0].submit();
+    });
+
+    //add an alert to confirm
+    $(document).on("click", "button.deleteLineup", function() {
+        let rosterName = $(this).closest("tr").find(".rosterName").text();
+        $.get(`/deleteLineup?rosterName=${rosterName}`, function(data) {
+            getId('alertMessage').innerHTML = `${data} succesfully deleted!`;
+            getId('alertMessage').style.visibility = "visible";
         });
-    };
+        $(this).closest('tr').remove();
+    });
+
 </script>
 
 
