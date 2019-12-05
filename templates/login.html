@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <form action="/login" method="post" style="width:500px">
+        <h2 class="display-4">Login</h2>
+        <div id="landingimg"></div>
+        <div class="form-group">
+            <label>Enter Username</label>
+            <input autocomplete="off" id="username" autofocus class="form-control" name="username" placeholder="Username" type="text">
+        </div>
+        <div class="form-group">
+            <label>Enter Password</label>
+            <input autocomplete="off" id="password" autofocus class="form-control" name="password" placeholder="Password" type="password">
+        </div>
+        <button class="btn btn-primary" id="login" type="submit">Login</button>
+        <br>
+        <br>
+        <p class="text-danger" id='invalid_input'>{{message}}</p>
+    </form>
+</div>
+
+
+<script>
+
+    let username = document.getElementById("username");
+    let password = document.getElementById("password");
+
+    //if came via render_template from duplicative username selection in /register route, display error message
+    document.getElementById("invalid_input").innerHTML === "Could Not Retrieve Username/Password" ? invalid_input_message("Could Not Retrieve Username/Password") : '' ;
+
+    document.getElementById("login").onclick = event => {
+
+        if (username.value.length < 5 || password.value.length < 5) {
+            event.preventDefault();
+            invalid_input_message("Invalid username or password.");
+            return false;
+        } else {
+            document.getElementById("login").submit();
+        }
+    };
+
+</script>
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+
+<div class='container'>
+    <table class="table">
+        <thead>
+            <h3 style='text-align:center' class="display-4">Current Rosters<button class="btn btn-primary" id="addroster">Create New Roster</button></h3>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Total Players</th>
+                <th>Created</th>
+            </tr>
+            {% if currentRosters %}
+            {% for roster in currentRosters %}
+            <tr>
+                <td class="rosterName">{{ roster['rosterName'] }}</td>
+                <td>{{ roster['Type'] }}</td>
+                <td>{{ roster['Rostered'] }}</td>
+                <td>{{ roster['lastModified'] }}</td>
+                <td><button class="btn btn-primary" id="editRoster">Edit</button></td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4">No saved rosters. Click on create roster to add a new roster</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    getId("addroster").onclick = () => {
+        window.location.href = '/createRoster';
+    };
+
+    getId('editRoster').onclick = function() {
+        let rosterName = $(this).closest("tr").find(".rosterName").text();
+        console.log(rosterName);
+        $.post('/editLineup', {
+            rosterName: JSON.stringify(rosterName)
+        });
+    };
+</script>
+
+
+
+{% endblock %}
