@@ -1,4 +1,6 @@
 let flex_positions = ["RB", "WR", "TE"];
+//figure out which actions are using roster_details and see if we can consolidate
+quantityCheck = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let roster_details = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let player_details = ['playerName', 'playerPosition', 'playerTeam', 'playerId'];
 
@@ -83,4 +85,17 @@ let counterChange = (position, action, loadPage=false) => {
             addColor(position, loadPage);
         }
     }
+
+    // check to see if success banner with optimize lineup button should be displayed
+    quantityCheck.every(detail => numberConv(getId(detail)) === numberConv(getId(`set${detail}`))) ?
+    getId("successAlert").style.visibility = "visible" : getId("successAlert").style.visibility = "hidden";
 };
+
+//save lineup filtering used for both /save and /optimize routes. Action parameters denotes if either being saved or optimized.
+let saveLineup = () => {
+  lineupToSave = {};
+  lineupToSave["rosterName"] = rosterName;
+  lineupToSave["playersToAdd"] = playerList.filter(player => !currentPlayers.includes(player))
+  lineupToSave["playersToDelete"] = currentPlayers.filter(player => !playerList.includes(player))
+  return lineupToSave;
+}

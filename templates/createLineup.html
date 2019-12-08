@@ -15,7 +15,7 @@
     </div>
     <br>
     <table class="table">
-        <div class="alert alert-secondary" role="alert" id="alertMessage">{{message}}</div>
+        <div class="alert alert-secondary" role="alert" id="saveAlert">{{message}}</div>
         <tr>
         {% for item in roster_details %}
             <th>{{item}}</th>
@@ -36,16 +36,9 @@
         {% endfor %}
         </tr>
     </table>
-    <!--if user reaches page via nav-bar-->
-    {% if success_banner %}
-    <div id ="nav_bar_success" class="alert alert-success" role="alert" style="text-align:center; display:block">All required players added!
-    <br>
-    <button class="btn btn-primary" id="submitlineup" name="submitlineup">Optimize Lineup</button>
-    </div>
-    {% endif %}
-    <div id ="success" class="alert alert-success" role="alert" style="text-align:center; display:none">All required players added!
-    <br>
-    <button class="btn btn-primary" id="submitlineup" name="submitlineup">Optimize Lineup</button>
+    <div id ="successAlert" class="alert alert-success" role="alert">All required players added!
+      <br>
+      <button class="btn btn-primary" id="optimize" name="optimize">Optimize Lineup</button>
     </div>
     <form action="/displaydetails" method="post" autocomplete="off">
         <div class="form-group">
@@ -80,16 +73,21 @@
         <tbody id="inserthere">
         </tbody>
     </table>
-    <p hidden id="rosterName">{{roster_name}}</p>
-    <form hidden class="form-group" type="submit" method="post" action="/save" id="saveLineup">
-        <input type="hidden" id="savedLineup" name="savedLineup">
-    </form>
+    <div hidden>
+      <p id="rosterName">{{roster_name}}</p>
+      <form class="form-group" type="submit" method="post" action="/save" id="saveLineup">
+          <input id="savedLineup" name="savedLineup">
+        </form>
+        <form class="form-group" type="submit" method="post" action="/optimize" id="optimizeLineup">
+          <input id="playersToOptimize" name="playersToOptimize">
+        </form>
+    </div>
 </div>
     <script>
-        //list for storing selected players
+        //list for storing selected players (will be changed dynamically based on user actions (i.e. save / delete))
         let playerList = [];
 
-        //players in current roster (updated during GET request during page load)
+        //players currently saved to roster in database (updated during GET request during page load) - this will be used to compare against the above list when /save route is selected
         let currentPlayers = [];
 
         //roster Name
@@ -107,7 +105,7 @@
         });
 
         window.onload = () => {
-            getId('alertMessage').innerHTML !== '' ? getId('alertMessage').style.visibility = 'visible' : '' ;
+            getId('saveAlert').innerHTML !== '' ? getId('saveAlert').style.visibility = 'visible' : '' ;
         }
 
         let input = document.querySelector('input');
@@ -185,14 +183,34 @@
             $(this).closest("tr").remove();
         });
 
-        getId('save').onclick = e => {
-                dataToSend = {};
-                dataToSend["rosterName"] = rosterName;
-                dataToSend["playersToAdd"] = playerList.filter(player => !currentPlayers.includes(player))
-                dataToSend["playersToDelete"] = currentPlayers.filter(player => !playerList.includes(player));
+        getId('save').onclick = () => {
+                //save Lineup function filters to find players to delete and players to add based on data received from GET request when page loaded
+                let dataToSend = saveLineup();
                 getId("savedLineup").setAttribute('value', JSON.stringify(dataToSend));
                 document.getElementsByTagName('form')[1].submit();
         };
+
+        getId('optimize').onclick = () => {
+            //pure position list for bucketing before sending to server
+            let all_positions = ["QB", "RB", "WR", "TE", "DEF", "K"];
+
+            let dataToSend = saveLineup();
+
+            //prepare position sorted list to send to server for ranking
+            dataToSend["playersToOptimize"] = {}
+            all_positions.forEach(position => {
+              dataToSend["playersToOptimize"][position] = playerList.filter(player => player.playerPosition === position).map(player => player.playerId);
+            })
+
+            //add KVP for PPR or standard. API for fantasyfootballnerd uses 1 for standard rankings or 0 for PPR rankings
+            getId('setType').innerHTML === "Standard" ? dataToSend["leagueType"] = 1 : dataToSend["leagueType"] = 0;
+
+            console.log(dataToSend)
+
+            //send data to form and submit
+            getId("playersToOptimize").setAttribute('value', JSON.stringify(dataToSend));
+            document.getElementsByTagName('form')[2].submit();
+        }
 
     </script>
 
