@@ -134,14 +134,23 @@ def save():
 
         saveDetails = json.loads(request.form.get('savedLineup'))
 
-        rosterName = list(saveDetails.keys())[0]
-        playersToSave = saveDetails[rosterName]
+        rosterName = saveDetails['rosterName']
+        playersToAdd = saveDetails['playersToAdd']
+        playersToDelete = saveDetails['playersToDelete']
 
-        db.execute('DELETE FROM players WHERE rosterName = :rosterName AND userId = :userId', rosterName = rosterName, userId = session["user_id"])
+        # db.execute('DELETE FROM players WHERE rosterName = :rosterName AND userId = :userId', rosterName = rosterName, userId = session["user_id"])
+        if playersToDelete:
+            playersDeleted = [db.execute('DELETE FROM players WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId', rosterName = rosterName, userId = session["user_id"],
+            playerId = player['playerId']) for player in playersToDelete]
 
-        playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
+        if playersToAdd:
+            playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
+            rosterName = rosterName, userId = session["user_id"], playerName = player["playerName"], playerPosition = player["playerPosition"], playerTeam = player["playerTeam"], playerId = player["playerId"])
+            for player in playersToAdd]
+
+        '''playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
         rosterName = rosterName, userId = session["user_id"], playerName = player["playerName"], playerPosition = player["playerPosition"], playerTeam = player["playerTeam"], playerId = player["playerId"])
-        for player in playersToSave]
+        for player in playersToSave]'''
 
         return redirect('/editLineup?rosterName=' + rosterName)
 

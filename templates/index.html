@@ -21,7 +21,7 @@
             </tr>
             {% if currentRosters %}
             {% for roster in currentRosters %}
-            <tr>
+            <tr id="{{ roster['rosterName'] }}">
                 <td class="rosterName">{{ roster['rosterName'] }}</td>
                 <td>{{ roster['Type'] }}</td>
                 <td>{{ roster['Rostered'] }}</td>
@@ -60,8 +60,8 @@
         $.get(`/deleteLineup?rosterName=${rosterName}`, function(data) {
             getId('alertMessage').innerHTML = `${data} succesfully deleted!`;
             getId('alertMessage').style.visibility = "visible";
+            getId(rosterName).remove()
         });
-        $(this).closest('tr').remove();
     });
 
 </script>

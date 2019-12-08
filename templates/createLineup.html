@@ -89,15 +89,18 @@
         //list for storing selected players
         let playerList = [];
 
+        //players in current roster (updated during GET request during page load)
+        let currentPlayers = [];
+
         //roster Name
         let rosterName = getId("rosterName").innerHTML;
-        console.log(rosterName);
 
-        //think about using onload or some sort of handler
+        //get players current stored in roster
         $.get('/loadPlayers?rosterName=' + rosterName, function(data) {
+            currentPlayers = data;
             data.forEach(player => {
                 playerList.push(player);
-                counterChange(player.playerPosition, 'add');
+                counterChange(player.playerPosition, 'add', true);
                 getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
                 <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
             });
@@ -146,10 +149,11 @@
                 <td class="playerId">${selectedPlayer.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
 
                 //flash add colors in position quantities table
-                counterChange(selectedPlayer.Position, 'add');
+                counterChange(selectedPlayer.playerPosition, 'add');
 
-                //clear player searchbar
-                //TODO
+                //clear player searchbar & refocus search bar
+                getId('player').value = '';
+                getId('player').focus();
             }
         };
 
@@ -182,16 +186,12 @@
         });
 
         getId('save').onclick = e => {
-            if (!playerList.length > 0) {
-                e.preventDefault();
-                invalid_input_message("Please add at least 1 player before saving");
-                return false;
-            } else {
                 dataToSend = {};
-                dataToSend[rosterName] = playerList;
+                dataToSend["rosterName"] = rosterName;
+                dataToSend["playersToAdd"] = playerList.filter(player => !currentPlayers.includes(player))
+                dataToSend["playersToDelete"] = currentPlayers.filter(player => !playerList.includes(player));
                 getId("savedLineup").setAttribute('value', JSON.stringify(dataToSend));
                 document.getElementsByTagName('form')[1].submit();
-            }
         };
 
     </script>
