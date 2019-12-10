@@ -37,10 +37,24 @@
       let rankedList = data[1].sort((player1, player2) => (player1.playerRanking >= player2.playerRanking) ? 1 : -1 )
       let starters = []
       rankedList.forEach(player => {
-        if (rosterCounter["Starters"] < rosterDetails["Starters"]) {
-          if 
+        if (rosterCounter["Starting"] < rosterDetails[0]["Starting"]) {
+          if (rosterCounter[player.playerPosition] < rosterDetails[0][player.playerPosition]) {
+            rosterCounter[player.playerPosition] += 1;
+            rosterCounter["Starting"] += 1;
+            starters.push(player);
+          }
+          else if (flex_positions.includes(player.playerPosition) && rosterCounter["FLEX"] < rosterDetails["FLEX"]) {
+            rosterCounter["FLEX"] += 1;
+            rosterCounter["Starting"] += 1;
+            player.playerPosition = "FLEX"
+            starters.push(player);
+          }
         }
-      })*/
+      })
+
+      console.log(rosterDetails)
+      console.log(rosterCounter)
+      console.log(starters)
     })
 
 
