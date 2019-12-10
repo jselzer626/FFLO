@@ -1,6 +1,6 @@
 let flex_positions = ["RB", "WR", "TE"];
 //figure out which actions are using roster_details and see if we can consolidate
-quantityCheck = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
+let quantityCheck = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let roster_details = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let player_details = ['playerName', 'playerPosition', 'playerTeam', 'playerId'];
 

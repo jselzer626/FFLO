@@ -95,8 +95,10 @@
 
         //get players current stored in roster
         $.get('/loadPlayers?rosterName=' + rosterName, function(data) {
-            currentPlayers = data;
-            data.forEach(player => {
+            // currentPlayers will be players that are currently in database and playerList will be list that is manipulated by add, delete and clear actions on this page
+
+            data[1].forEach(player => {
+                currentPlayers.push(player)
                 playerList.push(player);
                 counterChange(player.playerPosition, 'add', true);
                 getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
@@ -185,6 +187,7 @@
 
         getId('save').onclick = () => {
                 //save Lineup function filters to find players to delete and players to add based on data received from GET request when page loaded
+
                 let dataToSend = saveLineup();
                 getId("savedLineup").setAttribute('value', JSON.stringify(dataToSend));
                 document.getElementsByTagName('form')[1].submit();
@@ -204,8 +207,6 @@
 
             //add KVP for PPR or standard. API for fantasyfootballnerd uses 1 for standard rankings or 0 for PPR rankings
             getId('setType').innerHTML === "Standard" ? dataToSend["leagueType"] = 1 : dataToSend["leagueType"] = 0;
-
-            console.log(dataToSend)
 
             //send data to form and submit
             getId("playersToOptimize").setAttribute('value', JSON.stringify(dataToSend));

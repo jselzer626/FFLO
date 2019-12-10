@@ -144,8 +144,13 @@ def save():
 @app.route('/loadPlayers', methods=["GET"])
 def loadPlayers():
     if request.method == "GET":
+        print('here')
 
-        return jsonify(db.execute('SELECT playerName, playerPosition, playerTeam, playerId FROM players WHERE rosterName = :rosterName', rosterName = request.args.get('rosterName')))
+        rosterDetails = db.execute('SELECT * FROM rosters WHERE rosterName = :rosterName AND userId = :userId', rosterName = request.args.get('rosterName'), userId = session['user_id'])
+        currentPlayers = db.execute('SELECT playerName, playerPosition, playerTeam, playerId, playerRanking FROM players WHERE rosterName = :rosterName AND userId = :userId',
+        rosterName = request.args.get('rosterName'), userId = session['user_id'])
+
+        return jsonify(rosterDetails, currentPlayers)
 
 @app.route('/editLineup', methods=["GET", "POST"])
 @login_required
@@ -178,9 +183,7 @@ def delete():
 def optimize():
     if request.method == "POST":
 
-        playerRankings = {}
         saveDetails = json.loads(request.form.get('playersToOptimize'))
-        print(saveDetails)
 
         # perform normal add and delete players functions - see helpers.py for full documentation
         addAndDeletePlayers(saveDetails);
@@ -195,14 +198,11 @@ def optimize():
 
                 for player in positionRankings:
                     if player["playerId"] in saveDetails["playersToOptimize"][position]:
-                        playerRankings.update({player['playerId']: positionRankings.index(player)})
+                        # playerRankings.update({player['playerId']: positionRankings.index(player)})
+                        db.execute("UPDATE players SET playerRanking = :playerRanking WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId",
+                        playerRanking = positionRankings.index(player), rosterName = saveDetails["rosterName"], userId = session["user_id"], playerId = player["playerId"])
 
         return render_template("result.html", rosterName = saveDetails["rosterName"])
-
-
-
-
-
 
 
 if __name__ == '__main__':
