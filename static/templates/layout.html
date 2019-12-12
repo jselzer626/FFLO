@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <script src="/static/players.json"></script>
+        <script src="/static/scripts.js"></script>
+    </head>
+    <title>FFLO: {% block title %}{% endblock %}</title>
+    <nav class="navbar navbar-expand-md navbar-light">
+        <img class="headerimg" src="static/images/helmet.png" alt="helmet"><a class="navbar-brand text-dark" href="#">FFLO</a>
+        <ul class="navbar-nav ml-auto">
+            {% if session.user_id %}
+            <li class="nav-item"><a class="nav-link text-dark" href="/"><u><b>Home</b></u></a></li>
+            <li class="nav-item"><a class="nav-link text-dark" href="/logout"><u><b>Logout</b></u></a></li>
+            {% endif %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other Resources</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="https://www.fantasypros.com/">FantasyPros</a>
+                    <a class="dropdown-item" href="https://www.numberfire.com/nfl">Numberfire</a>
+                    <a class="dropdown-item" href="https://www.4for4.com/">4for4</a>
+                    <a class="dropdown-item" href="https://www.rotoworld.com/sports/nfl/football">Rotoworld</a>
+                    <a class="dropdown-item" href="https://www.rotowire.com/">Rotowire</a>
+                    <a class="dropdown-item" href="https://www.footballguys.com/">Football Guys</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+        <div class="jumbotron">
+            <h1>Fantasy Football Lineup Optimizer</h1>
+        </div>
+        <body>
+            <main>
+                {% block main %}{% endblock %}
+            </main>
+        </body>
+    <footer class="footer-copyright text-center py-3" style="font-size:small">
+        <img src="static/images/ffnlogo2.gif" style="height:100px" alt="ffn_logo" class="footerimage">
+        Powered with insights from fantasyfootballnerd.com. <a href="https://www.fantasyfootballnerd.com/terms">Check out their terms of use here.</a>
+    </footer>
+
+</html>

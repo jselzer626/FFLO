@@ -3,6 +3,7 @@ let flex_positions = ["RB", "WR", "TE"];
 let quantityCheck = ["Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let roster_details = ["Type", "Rostered", "Starting", "Bench", "QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 let player_details = ['playerName', 'playerPosition', 'playerTeam', 'playerId'];
+let justPositions = ["QB", "RB", "WR", "TE", "FLEX", "DEF", "K"];
 
 //factor out so many document.getElementById calls
 getId = Id => {
@@ -21,6 +22,19 @@ let invalid_input_message = display_message => {
         getId("invalid_input").style.visibility = "hidden";
     }, 5000);
 };
+
+//eliminate redundancies in sorting function on results.html
+rosterCounterChange = (position, rosterCounter) => {
+  rosterCounter[position] += 1;
+  rosterCounter["Starting"] += 1;
+}
+
+buildList = (player, button=true) => {
+  return button === true ? `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
+  <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>` :
+  `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
+  <td class="playerId">${player.playerRanking}</td></tr>`;
+}
 
 //change <td> color to green if <td> value equals required roster quantity
 //for counter that loads when page is loaded, operation will be set to load_page

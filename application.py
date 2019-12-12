@@ -144,7 +144,6 @@ def save():
 @app.route('/loadPlayers', methods=["GET"])
 def loadPlayers():
     if request.method == "GET":
-        print('here')
 
         rosterDetails = db.execute('SELECT * FROM rosters WHERE rosterName = :rosterName AND userId = :userId', rosterName = request.args.get('rosterName'), userId = session['user_id'])
         currentPlayers = db.execute('SELECT playerName, playerPosition, playerTeam, playerId, playerRanking FROM players WHERE rosterName = :rosterName AND userId = :userId',
@@ -193,12 +192,11 @@ def optimize():
 
         for position in positions:
             if saveDetails["playersToOptimize"][position]:
-                #call rankings API, return as ordered list where index of player is their weekly rankings
+                #call rankings API, return as ordered list where index of player is their weekly ranking
                 positionRankings = requests.get(f'https://www.fantasyfootballnerd.com/service/weekly-rankings/json/8qb63ck2ibj4/{position}/{currentWeek}/{saveDetails["leagueType"]}').json()["Rankings"]
 
                 for player in positionRankings:
                     if player["playerId"] in saveDetails["playersToOptimize"][position]:
-                        # playerRankings.update({player['playerId']: positionRankings.index(player)})
                         db.execute("UPDATE players SET playerRanking = :playerRanking WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId",
                         playerRanking = positionRankings.index(player), rosterName = saveDetails["rosterName"], userId = session["user_id"], playerId = player["playerId"])
 

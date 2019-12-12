@@ -101,12 +101,11 @@
                 currentPlayers.push(player)
                 playerList.push(player);
                 counterChange(player.playerPosition, 'add', true);
-                getId('inserthere').innerHTML += buildList(player);
-
+                getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
+                <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
             });
         });
 
-        //if alert text is populated by message from page load then make text visible
         window.onload = () => {
             getId('saveAlert').innerHTML !== '' ? getId('saveAlert').style.visibility = 'visible' : '' ;
         }
@@ -146,7 +145,8 @@
                 playerList.push(selectedPlayer);
 
                 //add to selected players table
-                getId('inserthere').innerHTML += buildList(selectedPlayer);
+                getId('inserthere').innerHTML += `<tr><td>${selectedPlayer.playerName}</td><td class="playerPosition">${selectedPlayer.playerPosition}</td><td>${selectedPlayer.playerTeam}</td>
+                <td class="playerId">${selectedPlayer.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
 
                 //flash add colors in position quantities table
                 counterChange(selectedPlayer.playerPosition, 'add');
@@ -195,12 +195,14 @@
 
         getId('optimize').onclick = () => {
             //pure position list for bucketing before sending to server
+            let all_positions = ["QB", "RB", "WR", "TE", "DEF", "K"];
+
             let dataToSend = saveLineup();
 
             //prepare position sorted list to send to server for ranking
             dataToSend["playersToOptimize"] = {}
-            justPositions.forEach(position => {
-              position !== 'FLEX' ? dataToSend["playersToOptimize"][position] = playerList.filter(player => player.playerPosition === position).map(player => player.playerId) : '' ;
+            all_positions.forEach(position => {
+              dataToSend["playersToOptimize"][position] = playerList.filter(player => player.playerPosition === position).map(player => player.playerId);
             })
 
             //add KVP for PPR or standard. API for fantasyfootballnerd uses 1 for standard rankings or 0 for PPR rankings
