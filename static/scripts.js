@@ -69,14 +69,17 @@ let counterChange = (position, action, loadPage=false) => {
              getId('Starting').innerHTML = numberConv(getId('Starting')) - 1;
              addColor("Starting", loadPage);
          }
+
+         if (numberConv(getId(`set${position}`)) > 0) {
          // flex or normal
-         if (numberConv(getId('FLEX')) > 0 && flex_positions.includes(position)) {
-             getId('FLEX').innerHTML = numberConv(getId("FLEX")) - 1;
-             addColor("FLEX", loadPage);
-         } else {
-             getId(position).innerHTML = numberConv(getId(position)) -1;
-             addColor(position, loadPage);
-         }
+            if (numberConv(getId('FLEX')) > 0 && flex_positions.includes(position)) {
+                getId('FLEX').innerHTML = numberConv(getId("FLEX")) - 1;
+                addColor("FLEX", loadPage);
+            } else {
+                getId(position).innerHTML = numberConv(getId(position)) -1;
+                addColor(position, loadPage);
+            }
+        }
     }
     else if (action === 'add') {
         if (numberConv(getId('Starting')) >= numberConv(getId('setStarting'))) {
