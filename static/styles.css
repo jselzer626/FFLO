@@ -1,7 +1,7 @@
 .jumbotron {
     background: url("images/field.jpg");
     background-size: cover;
-}
+  }
 
 body {
     display: block;
@@ -150,4 +150,9 @@ ul {
 #addroster {
     float: right;
     margin-top: 15px;
+}
+
+.alert {
+    visibility: hidden;
+    text-align: center;
 }

@@ -1,4 +1,5 @@
 import os
+import requests
 import json
 
 from cs50 import SQL
@@ -10,13 +11,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from collections import Counter
 from datetime import date
 
-from helpers import login_required
+from helpers import login_required, addAndDeletePlayers
 
 # Configure application
 app = Flask(__name__)
 
 # Reload templates when they are changed
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config['DEBUG'] = True
 
 @app.after_request
 def after_request(response):
@@ -128,30 +130,80 @@ def logout():
     return redirect("/")
 
 @app.route('/save', methods=["POST"])
+@login_required
 def save():
     if request.method == "POST":
-        saveDetails = {detail: json.loads(request.form[detail]) for detail in player_save_details}
 
-        existingPlayers = [player['playerId'] for player in db.execute("SELECT playerID FROM players WHERE rosterName = :rosterName", rosterName = saveDetails['rosterName'])]
+        saveDetails = json.loads(request.form.get('savedLineup'))
 
-        playersToAdd = [player for player in saveDetails['playersToSave'] if player['playerId'] not in existingPlayers]
+        # see helpers.py for full documentation
+        addAndDeletePlayers(saveDetails)
 
-        # add players
-
-        playersAdded = [db.execute('INSERT INTO players (rosterName, userId, playerName, playerPosition, playerTeam, playerId) VALUES (:rosterName, :userId, :playerName, :playerPosition, :playerTeam, :playerId)',
-        rosterName = saveDetails['rosterName'], userId = session["user_id"], playerName = player["Name"], playerPosition = player["Position"], playerTeam = player["Team"], playerId = player["playerId"])
-        for player in playersToAdd]
+        return redirect('/editLineup?rosterName=' + saveDetails["rosterName"])
 
 @app.route('/loadPlayers', methods=["GET"])
 def loadPlayers():
     if request.method == "GET":
 
-        return jsonify(db.execute('SELECT playerName, playerPosition, playerTeam, playerId FROM players WHERE rosterName = :rosterName', rosterName = request.args.get('rosterName')))
+        rosterDetails = db.execute('SELECT * FROM rosters WHERE rosterName = :rosterName AND userId = :userId', rosterName = request.args.get('rosterName'), userId = session['user_id'])
+        currentPlayers = db.execute('SELECT playerName, playerPosition, playerTeam, playerId, playerRanking FROM players WHERE rosterName = :rosterName AND userId = :userId',
+        rosterName = request.args.get('rosterName'), userId = session['user_id'])
 
-@app.route('/editLineup', methods=["POST"])
+        return jsonify(rosterDetails, currentPlayers)
+
+@app.route('/editLineup', methods=["GET", "POST"])
+@login_required
 def editLineup():
+
+    rosterName = ''
+    message = ''
+
+    if request.method == "POST":
+        rosterName = request.form.get('lineupToEdit')
+
+    else:
+        rosterName = request.args.get('rosterName')
+        message = f'{rosterName} saved!'
+
+    roster_details = db.execute("SELECT * FROM rosters WHERE userId = :userId AND rosterName = :rosterName", userId = session["user_id"], rosterName = rosterName)
+
+    return render_template("createLineup.html", roster_name = rosterName, roster_details = {detail: roster_details[0][detail] for detail in roster_details[0] if detail in roster_parameters}, message=message)
+
+@app.route('/deleteLineup', methods=["GET"])
+def delete():
+    if request.method == "GET":
+        rosterName = request.args.get("rosterName")
+
+        db.execute('DELETE FROM rosters WHERE rosterName = :rosterName', rosterName = rosterName)
+
+        return jsonify(rosterName)
+
+@app.route('/optimize', methods=["POST"])
+def optimize():
     if request.method == "POST":
 
-        rosterName = request.form['rosterName']
+        saveDetails = json.loads(request.form.get('playersToOptimize'))
 
-        return render_template("createLineup.html", roster_name = rosterName)
+        # perform normal add and delete players functions - see helpers.py for full documentation
+        addAndDeletePlayers(saveDetails);
+
+        # eventually add functionality to let user change weeks but for now use current week
+        currentWeek = requests.get("https://www.fantasyfootballnerd.com/service/weather/json/8qb63ck2ibj4/").json()["Week"]
+
+        for position in positions:
+            if saveDetails["playersToOptimize"][position]:
+                #call rankings API, return as ordered list where index of player is their weekly ranking
+                positionRankings = requests.get(f'https://www.fantasyfootballnerd.com/service/weekly-rankings/json/8qb63ck2ibj4/{position}/{currentWeek}/{saveDetails["leagueType"]}').json()["Rankings"]
+
+                for player in positionRankings:
+                    if player["playerId"] in saveDetails["playersToOptimize"][position]:
+                        db.execute("UPDATE players SET playerRanking = :playerRanking WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId",
+                        playerRanking = positionRankings.index(player), rosterName = saveDetails["rosterName"], userId = session["user_id"], playerId = player["playerId"])
+
+        return render_template("result.html", rosterName = saveDetails["rosterName"])
+
+
+if __name__ == '__main__':
+ app.debug = True
+ port = int(os.environ.get('PORT', 5000))
+ app.run(host='0.0.0.0', port=port)

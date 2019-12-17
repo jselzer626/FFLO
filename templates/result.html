@@ -9,70 +9,80 @@
 
 <div class="container">
     <div style="text-align: center;">
-        <h4>Your optimized lineup is projected to score {{total_projected}} points this week in {{roster_details["Type"]}} leagues.</h4>
-        <br>
-        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posrank</span><em> shows your player's ranking against all others at that position.</em></p>
-        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posrank</span><em> of "N/A" means your player is inactive this week (injury, bye-week etc.)</em></p>
-        <button class="btn btn-primary" id="editlineup">Edit Lineup</button></td>
+        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posRank</span><em> shows your player's ranking against all others at that position.</em></p>
+        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posRank</span><em> of "N/A" means your player is inactive this week (injury, bye-week etc.)</em></p>
+        <button class="btn btn-primary" id="editlineup">Edit Lineup</button>
     </div>
 <br>
 <table class="table">
+  <thead>
     <tr>
-        <th colspan="6" class="display-4">Starters</th>
+        <th colspan="6" class="display-4" id="starters">{{ rosterName }} Starters</th>
     </tr>
     <tr>
-        {% for detail in req_details %}
-        {% if detail == "standard" %}
-        <th>projected pts.</th>
-        {% elif detail == "ppr" %}
-        <th>projected pts.</th>
-        {% else %}
-        <th>{{detail}}</th>
-        {% endif %}
-        {% endfor %}
+      <th>name</th>
+      <th>position</th>
+      <th>team</th>
+      <th>posRank</th>
     </tr>
-        {% for position in positions %}
-        {% for player in starters %}
-    <tr>
-        {% if player["position"] == position %}
-        {% for detail in req_details %}
-        <td>{{player[detail]}}</td>
-        {% endfor %}
-        {% endif %}
-    </tr>
-        {% endfor %}
-        {% endfor %}
-    <tr>
-        {% for player in flex %}
-    <tr>
-        {% for detail in req_details %}
-        {% if detail == "position" %}
-        <td>FLEX</td>
-        {% else %}
-        <td>{{player[detail]}}</td>
-        {% endif %}
-        {% endfor %}
-    </tr>
-        {% endfor %}
-        <th colspan="6" class="display-4">Bench</th>
-    </tr>
-    <tr>
-        {% for player in bench_players %}
-    <tr>
-        {% for detail in req_details %}
-        <td>{{player[detail]}}</td>
-        {% endfor %}
-    </tr>
-        {% endfor %}
-    <tr>
-
+  </thead>
+  <tbody id="insertStarters">
+  </tbody>
 </table>
+<table class="table">
+  <thead>
+    <tr>
+        <th colspan="6" class="display-4" id="bench">{{ rosterName }} Bench</th>
+    </tr>
+  </thead>
+  <tbody id="insertBench">
+  </tbody>
+</table>
+
+<p hidden id="rosterName">{{ rosterName }}</p>
 </div>
 
 <script>
-    let editlineup = document.getElementById("editlineup");
-    editlineup.onclick = function() {
-        window.location.href = "/";
+
+    let rosterName = getId('rosterName').innerHTML;
+
+    $.get(`/loadPlayers?rosterName=${rosterName}`, function(data) {
+      let rosterDetails = data[0][0];
+      let rosterCounter = {}
+      quantityCheck.forEach(position => rosterCounter[position] = 0)
+      let rankedList = data[1].sort((player1, player2) => (player1.playerRanking >= player2.playerRanking) ? 1 : -1 )
+      //convert 500 ranks to 'N/A' for better display
+      rankedList.forEach(player => player.playerRanking === 500 ? player.playerRanking = 'N/A' : '' )
+      //calculate Starting Lineup
+      let starters = rankedList.filter(player => {
+        if (rosterCounter["Starting"] < rosterDetails["Starting"]) {
+          if (rosterCounter[player.playerPosition] < rosterDetails[player.playerPosition]) {
+            //see scripts.js for function documentation
+            rosterCounterChange(player.playerPosition, rosterCounter)
+            return player;
+          }
+          else if (flex_positions.includes(player.playerPosition) && rosterCounter["FLEX"] < rosterDetails["FLEX"]) {
+            rosterCounterChange("FLEX", rosterCounter)
+            player.playerPosition = "FLEX";
+            return player;
+          }
+        }
+      });
+      let bench = rankedList.filter(player => !starters.includes(player))
+
+      justPositions.forEach(position => {
+        starters.forEach(player => player.playerPosition === position ? getId('insertStarters').innerHTML += buildList(player, false) : '')
+      });
+
+      getId('insertBench').innerHTML = bench.map(player => buildList(player, false)).join('');
+
+    })
+
+
+    let editlineup = getId("editlineup");
+    editlineup.onclick = () => {
+        let rosterName = getId('rosterName').innerHTML;
+        window.location.href = `/editLineup?rosterName=${rosterName}`;
     };
 </script>
 

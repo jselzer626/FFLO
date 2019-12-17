@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Results
+{% endblock %}
+
+
+{% block main %}
+
+<div class="container">
+    <div style="text-align: center;">
+        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posrank</span><em> shows your player's ranking against all others at that position.</em></p>
+        <p class="lead"><span style="font-size: 16px; font-weight: bold;">posrank</span><em> of "N/A" means your player is inactive this week (injury, bye-week etc.)</em></p>
+        <button class="btn btn-primary" id="editlineup">Edit Lineup</button></td>
+    </div>
+<br>
+<table class="table">
+    <tr>
+        <th colspan="6" class="display-4" id="starters">{{ rosterName }} Starters</th>
+    </tr>
+    <tr>
+        <th colspan="6" class="display-4" id="bench">{{ rosterName }} Bench</th>
+    </tr>
+
+</table>
+<p hidden id="rosterName">{{ rosterName }}</p>
+</div>
+
+<script>
+
+    let rosterName = getId('rosterName').innerHTML;
+
+    $.get(`/loadPlayers?rosterName=${rosterName}`, function(data) {
+      let rosterDetails = data[0][0];
+      let rosterCounter = {}
+      quantityCheck.forEach(position => rosterCounter[position] = 0)
+      let rankedList = data[1].sort((player1, player2) => (player1.playerRanking >= player2.playerRanking) ? 1 : -1 )
+      let starters = []
+      rankedList.forEach(player => {
+        if (rosterCounter["Starting"] < rosterDetails["Starting"]) {
+          if (rosterCounter[player.playerPosition] < rosterDetails[player.playerPosition]) {
+            rosterCounter[player.playerPosition] += 1;
+            rosterCounter["Starting"] += 1;
+            starters.push(player);
+          }
+          else if (flex_positions.includes(player.playerPosition) && rosterCounter["FLEX"] < rosterDetails["FLEX"]) {
+            rosterCounter["FLEX"] += 1;
+            rosterCounter["Starting"] += 1;
+            player.playerPosition = "FLEX"
+            starters.push(player);
+          }
+        }
+      })
+
+      console.log(rosterDetails)
+      console.log(rosterCounter)
+      console.log(starters)
+    })
+
+
+    let editlineup = getId("editlineup");
+    editlineup.onclick = () => {
+        let rosterName = getId('rosterName').innerHTML;
+        window.location.href = `/editLineup?rosterName=${rosterName}`;
+    };
+</script>
+
+{% endblock %}

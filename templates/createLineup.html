@@ -15,6 +15,7 @@
     </div>
     <br>
     <table class="table">
+        <div class="alert alert-secondary" role="alert" id="saveAlert">{{message}}</div>
         <tr>
         {% for item in roster_details %}
             <th>{{item}}</th>
@@ -35,16 +36,9 @@
         {% endfor %}
         </tr>
     </table>
-    <!--if user reaches page via nav-bar-->
-    {% if success_banner %}
-    <div id ="nav_bar_success" class="alert alert-success" role="alert" style="text-align:center; display:block">All required players added!
-    <br>
-    <button class="btn btn-primary" id="submitlineup" name="submitlineup">Optimize Lineup</button>
-    </div>
-    {% endif %}
-    <div id ="success" class="alert alert-success" role="alert" style="text-align:center; display:none">All required players added!
-    <br>
-    <button class="btn btn-primary" id="submitlineup" name="submitlineup">Optimize Lineup</button>
+    <div id ="successAlert" class="alert alert-success" role="alert">All required players added!
+      <br>
+      <button class="btn btn-primary" id="optimize" name="optimize">Optimize Lineup</button>
     </div>
     <form action="/displaydetails" method="post" autocomplete="off">
         <div class="form-group">
@@ -79,47 +73,43 @@
         <tbody id="inserthere">
         </tbody>
     </table>
-    <p hidden id="rosterName">{{roster_name}}</p>
-    <form hidden class="form-group" type="submit" method="post" action="/save" id="saveLineup">
-        <input type="hidden" id="saveLineupList" name="savedLineup">
-    </form>
+    <div hidden>
+      <p id="rosterName">{{roster_name}}</p>
+      <form class="form-group" type="submit" method="post" action="/save" id="saveLineup">
+          <input id="savedLineup" name="savedLineup">
+        </form>
+        <form class="form-group" type="submit" method="post" action="/optimize" id="optimizeLineup">
+          <input id="playersToOptimize" name="playersToOptimize">
+        </form>
+    </div>
 </div>
     <script>
+        //list for storing selected players (will be changed dynamically based on user actions (i.e. save / delete))
+        let playerList = [];
+
+        //players currently saved to roster in database (updated during GET request during page load) - this will be used to compare against the above list when /save route is selected
+        let currentPlayers = [];
+
         //roster Name
         let rosterName = getId("rosterName").innerHTML;
 
-        //roster details
-        let currentRosterDetails = {};
-        roster_details.forEach(detail => currentRosterDetails[detail] = getId(`set${detail}`).innerHTML);
-
-        //list for storing selected players
-        let playerList = [];
-
-        //change <td> color to green if <td> value equals required roster quantity
-        addColor = detail => {
-            //check if final color needed
-            if (numberConv(getId(detail)) === numberConv(getId('set' + detail))) {
-                getId(detail).style.backgroundColor = "#d4edda";
-            } else {
-                //flash gray if else
-                getId(detail).style.backgroundColor = "#d3d3d3";
-                setTimeout( function() {
-                    getId(detail).style.backgroundColor = "";
-                }, 500);
-            }
-        };
-
-        //think about using onload or some sort of handler
+        //get players current stored in roster
         $.get('/loadPlayers?rosterName=' + rosterName, function(data) {
-            data.forEach(player => {
+            // currentPlayers will be players that are currently in database and playerList will be list that is manipulated by add, delete and clear actions on this page
+
+            data[1].forEach(player => {
+                currentPlayers.push(player)
                 playerList.push(player);
-                counterChange(player.playerPosition, 'add');
-                getId('inserthere').innerHTML += `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
-            <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
+                counterChange(player.playerPosition, 'add', true);
+                getId('inserthere').innerHTML += buildList(player);
+
             });
         });
 
-
+        //if alert text is populated by message from page load then make text visible
+        window.onload = () => {
+            getId('saveAlert').innerHTML !== '' ? getId('saveAlert').style.visibility = 'visible' : '' ;
+        }
 
         let input = document.querySelector('input');
         input.onkeyup = () => {
@@ -156,14 +146,14 @@
                 playerList.push(selectedPlayer);
 
                 //add to selected players table
-                getId('inserthere').innerHTML += `<tr><td>${selectedPlayer.Name}</td><td class="playerPosition">${selectedPlayer.Position}</td><td>${selectedPlayer.Team}</td>
-                <td class="playerId">${selectedPlayer.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>`;
+                getId('inserthere').innerHTML += buildList(selectedPlayer);
 
                 //flash add colors in position quantities table
-                counterChange(selectedPlayer.Position, 'add');
+                counterChange(selectedPlayer.playerPosition, 'add');
 
-                //clear player searchbar
-                //TODO
+                //clear player searchbar & refocus search bar
+                getId('player').value = '';
+                getId('player').focus();
             }
         };
 
@@ -195,20 +185,31 @@
             $(this).closest("tr").remove();
         });
 
-        getId('save').onclick = e => {
-            if (!playerList.length > 0) {
-                e.preventDefault();
-                invalid_input_message("Please add at least 1 player before saving");
-                return false;
-            } else {
-                $.post('/save', {
-                    playersToSave: JSON.stringify(playerList),
-                    rosterName: JSON.stringify(rosterName),
-                    currentRosterDetails: JSON.stringify(currentRosterDetails)
-                });
+        getId('save').onclick = () => {
+                //save Lineup function filters to find players to delete and players to add based on data received from GET request when page loaded
 
-            }
+                let dataToSend = saveLineup();
+                getId("savedLineup").setAttribute('value', JSON.stringify(dataToSend));
+                document.getElementsByTagName('form')[1].submit();
         };
+
+        getId('optimize').onclick = () => {
+            //pure position list for bucketing before sending to server
+            let dataToSend = saveLineup();
+
+            //prepare position sorted list to send to server for ranking
+            dataToSend["playersToOptimize"] = {}
+            justPositions.forEach(position => {
+              position !== 'FLEX' ? dataToSend["playersToOptimize"][position] = playerList.filter(player => player.playerPosition === position).map(player => player.playerId) : '' ;
+            })
+
+            //add KVP for PPR or standard. API for fantasyfootballnerd uses 1 for standard rankings or 0 for PPR rankings
+            getId('setType').innerHTML === "Standard" ? dataToSend["leagueType"] = 1 : dataToSend["leagueType"] = 0;
+
+            //send data to form and submit
+            getId("playersToOptimize").setAttribute('value', JSON.stringify(dataToSend));
+            document.getElementsByTagName('form')[2].submit();
+        }
 
     </script>
 
