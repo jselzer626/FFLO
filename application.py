@@ -43,9 +43,30 @@ positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
 flex_positions = ["RB", "WR", "TE"]
 player_save_details = ['playersToSave', 'rosterName']
 
-@app.route('/start', methods=["GET"])
+'''@app.route('/start', methods=["GET"])
 def start():
-    return render_template("landing.html")
+    return render_template("landing.html")'''
+
+@app.route('/login', methods = ["GET", "POST"])
+def login():
+    if request.method == "POST":
+
+        # logout any current user
+        session.clear()
+
+        # minimum length requirements of passwords have already been verified client side
+        rows = db.execute('SELECT * FROM users WHERE username = :username', username=request.form.get("username"))
+
+        # invalid username / password
+        if len(rows) != 1 or not check_password_hash(rows[0]['passwordHash'], request.form.get("password")):
+            return render_template('login.html', message = "Could Not Retrieve Username/Password")
+        else:
+            session["user_id"] = rows[0]["userId"]
+
+        return redirect("/")
+
+    elif request.method == "GET":
+        return render_template("login.html")
 
 @app.route('/register', methods=["GET", "POST"])
 def create_user():
@@ -72,27 +93,6 @@ def create_user():
 
     elif request.method == "GET":
         return render_template("register.html")
-
-@app.route('/login', methods = ["GET", "POST"])
-def login():
-    if request.method == "POST":
-
-        # logout any current user
-        session.clear()
-
-        # minimum length requirements of passwords have already been verified client side
-        rows = db.execute('SELECT * FROM users WHERE username = :username', username=request.form.get("username"))
-
-        # invalid username / password
-        if len(rows) != 1 or not check_password_hash(rows[0]['passwordHash'], request.form.get("password")):
-            return render_template('login.html', message = "Could Not Retrieve Username/Password")
-        else:
-            session["user_id"] = rows[0]["userId"]
-
-        return redirect("/")
-
-    else:
-        return render_template("login.html")
 
 @app.route("/", methods = ['GET', 'POST'])
 @login_required
@@ -146,7 +146,7 @@ def loadPlayers():
     if request.method == "GET":
 
         rosterDetails = db.execute('SELECT * FROM rosters WHERE rosterName = :rosterName AND userId = :userId', rosterName = request.args.get('rosterName'), userId = session['user_id'])
-        currentPlayers = db.execute('SELECT playerName, playerPosition, playerTeam, playerId, playerRanking FROM players WHERE rosterName = :rosterName AND userId = :userId',
+        currentPlayers = db.execute('SELECT playerName, playerPosition, playerTeam, playerId, playerRanking, projected FROM players WHERE rosterName = :rosterName AND userId = :userId',
         rosterName = request.args.get('rosterName'), userId = session['user_id'])
 
         return jsonify(rosterDetails, currentPlayers)
@@ -197,8 +197,8 @@ def optimize():
 
                 for player in positionRankings:
                     if player["playerId"] in saveDetails["playersToOptimize"][position]:
-                        db.execute("UPDATE players SET playerRanking = :playerRanking WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId",
-                        playerRanking = positionRankings.index(player), rosterName = saveDetails["rosterName"], userId = session["user_id"], playerId = player["playerId"])
+                        db.execute("UPDATE players SET playerRanking = :playerRanking, projected = :projected WHERE rosterName = :rosterName AND userId = :userId AND playerId = :playerId",
+                        playerRanking = positionRankings.index(player), projected = player[saveDetails["leagueTypeFull"]], rosterName = saveDetails["rosterName"], userId = session["user_id"], playerId = player["playerId"])
 
         return render_template("result.html", rosterName = saveDetails["rosterName"])
 

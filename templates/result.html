@@ -9,6 +9,8 @@
 
 <div class="container">
     <div style="text-align: center;">
+        <h4 id="totalProjected"></h4>
+        <br>
         <p class="lead"><span style="font-size: 16px; font-weight: bold;">posRank</span><em> shows your player's ranking against all others at that position.</em></p>
         <p class="lead"><span style="font-size: 16px; font-weight: bold;">posRank</span><em> of "N/A" means your player is inactive this week (injury, bye-week etc.)</em></p>
         <button class="btn btn-primary" id="editlineup">Edit Lineup</button>
@@ -24,17 +26,14 @@
       <th>position</th>
       <th>team</th>
       <th>posRank</th>
+      <th>projected pts.</th>
     </tr>
   </thead>
   <tbody id="insertStarters">
   </tbody>
-</table>
-<table class="table">
-  <thead>
     <tr>
         <th colspan="6" class="display-4" id="bench">{{ rosterName }} Bench</th>
     </tr>
-  </thead>
   <tbody id="insertBench">
   </tbody>
 </table>
@@ -75,6 +74,10 @@
       });
 
       getId('insertBench').innerHTML = bench.map(player => buildList(player, false)).join('');
+
+      //calculate and display projected
+      let projected = starters.reduce((total,starter) => total + starter.projected, 0)
+      getId("totalProjected").innerHTML = `Your optimized lineup is projected to score ${projected} points this week`;
 
     })
 

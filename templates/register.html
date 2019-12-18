@@ -28,29 +28,38 @@
         <p class="text-danger" id='invalid_input'>{{message}}</p>
 
     </form>
+    <br>
+    <br>
+    <div class="startfooter">
+    <h4><em>Already Have An Account?</em><span style="margin:12px"></span><button class="btn btn-primary" id="login">Login</h4>
+    </div>
 </div>
 
 
 <script>
 
-    let username = document.getElementById("username");
-    let password = document.getElementById("password");
-    let confirm_password = document.getElementById("confirm_password");
+    let username = getId("username");
+    let password = getId("password");
+    let confirm_password = getId("confirm_password");
 
 
     //if came via render_template from duplicative username selection in /register route, display error message
-    document.getElementById("invalid_input").innerHTML === "Username already taken" ? invalid_input_message("Username already taken") : '' ;
+    getId("invalid_input").innerHTML === "Username already taken" ? invalid_input_message("Username already taken") : '' ;
 
-    document.getElementById("register").onclick = event => {
+    getId("register").onclick = event => {
 
         if (username.value.length < 5 || password.value.length < 5 || confirm_password.value !== password.value) {
             event.preventDefault();
             invalid_input_message("Invalid username or password.");
             return false;
         } else {
-            document.getElementById("register").submit();
+            getId("register").submit();
         }
     };
+
+    getId('login').onclick = () => {
+      window.location.href = '/login';
+    }
 
 </script>
 

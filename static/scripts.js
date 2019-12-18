@@ -33,7 +33,7 @@ buildList = (player, button=true) => {
   return button === true ? `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
   <td class="playerId">${player.playerId}</td><td><button class="remove" class="btn btn-primary">Remove</button></td></tr>` :
   `<tr><td>${player.playerName}</td><td class="playerPosition">${player.playerPosition}</td><td>${player.playerTeam}</td>
-  <td class="playerId">${player.playerRanking}</td></tr>`;
+  <td class="playerId">${player.playerRanking}</td><td>${player.projected}</td></tr>`;
 }
 
 //change <td> color to green if <td> value equals required roster quantity
