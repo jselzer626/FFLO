@@ -175,11 +175,11 @@
             let positionRemove = $(this).closest("tr").find(".playerPosition").text();
             let playerIdRemove = $(this).closest("tr").find(".playerId").text();
 
-            let removeIndex = playerList.map(player => player.playerId).indexOf(playerIdRemove);
-            playerList.splice(removeIndex, 1);
-
             //update counter
             counterChange(positionRemove, 'remove');
+
+            let removeIndex = playerList.map(player => player.playerId).indexOf(playerIdRemove);
+            playerList.splice(removeIndex, 1);
 
             // remove row from player table
             $(this).closest("tr").remove();
@@ -209,6 +209,7 @@
             //get full league type name for retrieving projected points from API (does not use 1 or 0)
             dataToSend["leagueTypeFull"] = getId('setType').innerHTML.toLowerCase()
 
+            console.log(dataToSend);
             //send data to form and submit
             getId("playersToOptimize").setAttribute('value', JSON.stringify(dataToSend));
             document.getElementsByTagName('form')[2].submit();

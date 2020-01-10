@@ -8,8 +8,6 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
-from collections import Counter
-from datetime import date
 
 from helpers import login_required, addAndDeletePlayers
 
@@ -43,16 +41,15 @@ positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
 flex_positions = ["RB", "WR", "TE"]
 player_save_details = ['playersToSave', 'rosterName']
 
-'''@app.route('/start', methods=["GET"])
-def start():
-    return render_template("landing.html")'''
-
 @app.route('/login', methods = ["GET", "POST"])
 def login():
     if request.method == "POST":
 
         # logout any current user
         session.clear()
+
+        # create a session key equal to user name for navbar display
+        session['user_name'] = request.form.get("username")
 
         # minimum length requirements of passwords have already been verified client side
         rows = db.execute('SELECT * FROM users WHERE username = :username', username=request.form.get("username"))
@@ -174,7 +171,8 @@ def delete():
     if request.method == "GET":
         rosterName = request.args.get("rosterName")
 
-        db.execute('DELETE FROM rosters WHERE rosterName = :rosterName', rosterName = rosterName)
+        db.execute('DELETE FROM rosters WHERE rosterName = :rosterName AND userId = :user_id', rosterName = rosterName, user_id = session['user_id'])
+        db.execute('DELETE FROM players WHERE rosterName = :rosterName AND userId = :user_id', rosterName = rosterName, user_id = session['user_id'])
 
         return jsonify(rosterName)
 

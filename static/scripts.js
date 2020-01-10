@@ -70,17 +70,31 @@ let counterChange = (position, action, loadPage=false) => {
              addColor("Starting", loadPage);
          }
 
-         if (numberConv(getId(`set${position}`)) > 0) {
+         if (numberConv(getId(`set${position}`)) > 0 || flex_positions.includes(position) && numberConv(getId('FLEX')) > 0) {
          // flex or normal
-            if (numberConv(getId('FLEX')) > 0 && flex_positions.includes(position)) {
-                getId('FLEX').innerHTML = numberConv(getId("FLEX")) - 1;
+            if (numberConv(getId('FLEX')) > 0) {
+                flexCounter = 0;
+                playerList.forEach(player => flex_positions.includes(player.playerPosition) ? flexCounter += 1: '');
+                console.log(flexCounter);
+                flexEligiblePositionCount = numberConv(getId("TE")) + numberConv(getId("WR")) + numberConv(getId("RB"));
+                console.log(flexEligiblePositionCount);
+                flexCounter - flexEligiblePositionCount >= numberConv(getId('setFLEX')) ? '' : getId('FLEX').innerHTML = numberConv(getId("FLEX")) - 1;
                 addColor("FLEX", loadPage);
             } else {
-                getId(position).innerHTML = numberConv(getId(position)) -1;
+                posCounter = 0;
+                playerList.forEach(player => {
+                    console.log(player);
+                    position === player.playerPosition ? posCounter += 1: '';
+                });
+                currentPosCount = numberConv(getId(`set${position}`))
+                console.log(posCounter)
+                console.log(currentPosCount)
+                posCounter - 1 >= currentPosCount ? '' : getId(position).innerHTML = numberConv(getId(position)) -1;
                 addColor(position, loadPage);
             }
         }
     }
+
     else if (action === 'add') {
         if (numberConv(getId('Starting')) >= numberConv(getId('setStarting'))) {
             getId("Bench").innerHTML = numberConv(getId('Bench')) + 1;
@@ -112,7 +126,8 @@ let counterChange = (position, action, loadPage=false) => {
 let saveLineup = () => {
   lineupToSave = {};
   lineupToSave["rosterName"] = rosterName;
-  lineupToSave["playersToAdd"] = playerList.filter(player => !currentPlayers.includes(player))
-  lineupToSave["playersToDelete"] = currentPlayers.filter(player => !playerList.includes(player))
+  lineupToSave["playersToAdd"] = playerList.filter(player => !currentPlayers.includes(player));
+  lineupToSave["playersToDelete"] = currentPlayers.filter(player => !playerList.includes(player));
+  lineupToSave["fullPlayerCount"] = playerList.length;
   return lineupToSave;
 }
